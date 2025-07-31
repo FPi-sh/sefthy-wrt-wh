@@ -39,7 +39,7 @@ def get_macaddr():
     except ValueError:
         return jsonify({'error': 'Invalid IP address format'}), 400
     
-    interface = subprocess.run('sqlite3 /opt/sefthy-wrt-gui/app.db "select bridge_name from selected_bridge"', shell=True, capture_output=True)
+    interface = subprocess.run('uci get sefthy.config.selected_br', shell=True, capture_output=True)
     result = subprocess.run(f'arping -s 0.0.0.0 -c 1 -I {interface.stdout.decode("utf-8").strip()} {ip} | grep -oE "([0-9a-fA-F]{{2}}:){{5}}[0-9a-fA-F]{{2}}"', shell=True, capture_output=True)
 
     return jsonify({'exit_code': result.returncode,
@@ -48,7 +48,7 @@ def get_macaddr():
 
 @app.route('/3d9cb111-9955-41a3-9013-238787756ab0/dr-bridge-status', methods=['POST'])
 def dr_bridge_status():
-    interface = subprocess.run('sqlite3 /opt/sefthy-wrt-gui/app.db "select bridge_name from selected_bridge"', shell=True, capture_output=True)
+    interface = subprocess.run('uci get sefthy.config.selected_br', shell=True, capture_output=True)
     result = subprocess.run([f'/usr/sbin/brctl show {interface.stdout.decode("utf-8").strip()} | grep sefthy'], shell=True, capture_output=True)
     if result.returncode == 0:
         return jsonify({
